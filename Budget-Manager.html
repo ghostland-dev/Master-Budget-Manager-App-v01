@@ -1,0 +1,1908 @@
+<html><head><base href="."><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BudgetMaster - Gestion Budgétaire</title>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'Roboto', sans-serif;
+}
+.material-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.material-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+}
+.material-button {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.material-input {
+    border: none;
+    border-bottom: 2px solid #e2e8f0;
+    border-radius: 0;
+    padding: 8px 0;
+    transition: border-color 0.3s ease;
+}
+.material-input:focus {
+    outline: none;
+    border-bottom-color: #2563eb;
+}
+.material-select {
+    border: none;
+    border-bottom: 2px solid #e2e8f0;
+    border-radius: 0;
+    padding: 8px 0;
+    background-color: transparent;
+}
+.material-select:focus {
+    outline: none;
+    border-bottom-color: #2563eb;
+}
+.floating-label {
+    position: relative;
+    margin-bottom: 1rem;
+}
+.floating-label label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    transition: transform 0.3s ease;
+}
+.floating-label input:focus + label,
+.floating-label input:not(:placeholder-shown) + label {
+    transform: translateY(-20px) scale(0.75);
+    color: #2563eb;
+}
+.transaction-row {
+    animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+.card-appear {
+    animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.main-content {
+    padding: 1rem;
+}
+.content-section {
+    margin-bottom: 2rem;
+}
+.grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (min-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+.material-card {
+    margin-bottom: 1rem;
+}
+@media (min-width: 768px) {
+    .material-card {
+        margin-bottom: 0;
+    }
+}
+@media (max-width: 767px) {
+    #projectModal .relative {
+        width: 90%;
+        max-width: none;
+        margin: 1rem auto;
+    }
+}
+#exportData {
+    margin: 1rem;
+}
+.export-button-group {
+    margin: 1rem 0;
+}
+#colorMenu {
+    z-index: 1000;
+}
+.theme-option:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+}
+.nav-button {
+  transition: transform 0.2s ease;
+}
+.nav-button:hover {
+  transform: translateY(-2px);
+}
+@media (max-width: 768px) {
+  .header-buttons {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .nav-button {
+    font-size: 0.875rem;
+  }
+}
+#notificationContainer {
+    position: fixed;
+    top: 4rem;
+    right: 1rem;
+    z-index: 9999;
+    pointer-events: none;
+    max-width: 400px;
+}
+.notification {
+    animation: slideInRight 0.3s ease-out, fadeOut 0.5s ease-out 4.5s forwards;
+    max-width: 100%;
+    pointer-events: auto;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    transform-origin: center right;
+    backdrop-filter: blur(8px);
+    border-left: 4px solid;
+}
+.notification-success {
+    background-color: rgba(16, 185, 129, 0.95);
+    border-left-color: #059669;
+}
+.notification-warning {
+    background-color: rgba(245, 158, 11, 0.95);
+    border-left-color: #D97706;
+}
+.notification-error {
+    background-color: rgba(239, 68, 68, 0.95);
+    border-left-color: #DC2626;
+}
+.notification-info {
+    background-color: rgba(59, 130, 246, 0.95);
+    border-left-color: #2563EB;
+}
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+@keyframes fadeOut {
+    from {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%) scale(0.95);
+        opacity: 0;
+    }
+}
+.savings-project-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.savings-project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+.progress-bar {
+    transition: width 1s ease-in-out;
+    position: relative;
+}
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.1) 25%,
+        rgba(255,255,255,0.2) 50%,
+        rgba(255,255,255,0.1) 75%
+    );
+    animation: shine 1.5s infinite;
+}
+@keyframes shine {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+.transaction-table {
+    border-spacing: 0;
+    width: 100%;
+}
+.transaction-header {
+    background-color: #f8fafc;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.transaction-row {
+    transition: all 0.2s ease-in-out;
+    border-bottom: 1px solid #f1f5f9;
+}
+.transaction-row:hover {
+    background-color: #f8fafc;
+    transform: translateX(4px);
+}
+.transaction-cell {
+    padding: 1rem;
+    vertical-align: middle;
+}
+.transaction-amount {
+    font-weight: 500;
+    font-family: 'Roboto Mono', monospace;
+}
+.transaction-type-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+.transaction-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+.transaction-row:hover .transaction-actions {
+    opacity: 1;
+}
+.delete-button {
+    padding: 0.5rem;
+    border-radius: 9999px;
+    transition: all 0.2s ease-in-out;
+}
+.delete-button:hover {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+.transaction-form-card {
+    background: linear-gradient(145deg, #ffffff, #f5f7fa);
+    border-radius: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.transaction-form-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+}
+.transaction-type-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem;
+    background: #f1f5f9;
+    border-radius: 12px;
+}
+.transaction-type-option {
+    flex: 1;
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.transaction-type-option.active {
+    background: #2563eb;
+    color: white;
+}
+.expense-chart-card {
+    background: linear-gradient(145deg, #ffffff, #f5f7fa);
+    border-radius: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.expense-chart-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+}
+.tip-card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+.tip-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.1);
+}
+.tip-icon {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+.tip-icon i {
+    color: white;
+    font-size: 24px;
+}
+.tip-title {
+    color: #1e40af;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.025em;
+}
+.tip-content {
+    color: #4b5563;
+    line-height: 1.6;
+}
+.analysis-card {
+    background: linear-gradient(145deg, #ffffff, #f5f7fa);
+    border-radius: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.analysis-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+}
+.analysis-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+.analysis-panel {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+.analysis-panel:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.recommendation-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+.recommendation-item:hover {
+    transform: translateX(4px);
+}
+.recommendation-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 1rem;
+}
+.summary-card {
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+}
+.summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+.summary-card.income::before {
+    background: linear-gradient(90deg, #10B981, #059669);
+}
+.summary-card.expenses::before {
+    background: linear-gradient(90deg, #EF4444, #DC2626);
+}
+.summary-card.savings::before {
+    background: linear-gradient(90deg, #3B82F6, #2563EB);
+}
+.summary-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+.summary-title {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #1F2937;
+}
+.summary-amount {
+    font-size: 2rem;
+    font-weight: 600;
+    font-family: 'Roboto Mono', monospace;
+    letter-spacing: -0.025em;
+}
+.simulator-card {
+    background: linear-gradient(145deg, #ffffff, #f5f7fa);
+    border-radius: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+.simulator-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+}
+.simulator-results {
+    background: linear-gradient(to right, #f0f9ff, #e0f2fe);
+    border-radius: 12px;
+}
+.result-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    transition: transform 0.3s ease;
+}
+.result-card:hover {
+    transform: translateY(-2px);
+}
+.simulator-chart {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+</style>
+</head>
+<body class="bg-gray-50">
+
+<div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+<div class="min-h-screen flex">
+    <!-- Main Content -->
+    <div class="flex-1">
+        <header class="bg-blue-600 text-white p-4 shadow-lg sticky-header">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-medium">Gestion BudgetMaster</h1>
+                <div class="flex space-x-4 items-center header-buttons">
+                    <button id="exportCSV" class="material-button bg-blue-700 nav-button px-4 py-2 rounded flex items-center">
+                        <i class="material-icons mr-2">sync</i>
+                        CSV
+                    </button>
+                    <button onclick="backupData()" class="material-button bg-blue-700 nav-button px-4 py-2 rounded flex items-center">
+                        <i class="material-icons mr-2">backup</i>
+                        Backup
+                    </button>
+                    <input type="file" id="restoreFile" accept=".json" class="hidden" onchange="restoreData(this.files[0])">
+                    <button onclick="document.getElementById('restoreFile').click()" class="material-button bg-blue-700 nav-button px-4 py-2 rounded flex items-center">
+                        <i class="material-icons mr-2">restore</i>
+                        Restore
+                    </button>
+                    <button onclick="exportPDF()" class="material-button bg-blue-700 nav-button px-4 py-2 rounded flex items-center">
+                        <i class="material-icons mr-2">picture_as_pdf</i>
+                        PDF
+                    </button>
+                    <button id="profileBtn" class="material-button bg-blue-700 nav-button px-4 py-2 rounded flex items-center">
+                        <i class="material-icons mr-2">account_circle</i>
+                        Profile
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Summary Cards -->
+            <div class="grid md:grid-cols-3 gap-6 content-section">
+                <div class="summary-card income">
+                    <div class="flex items-center mb-4">
+                        <div class="summary-icon bg-green-100">
+                            <i class="material-icons text-2xl text-green-600">trending_up</i>
+                        </div>
+                    </div>
+                    <h3 class="summary-title">Total Revenus</h3>
+                    <p id="totalIncome" class="summary-amount text-green-600">0€</p>
+                </div>
+                
+                <div class="summary-card expenses">
+                    <div class="flex items-center mb-4">
+                        <div class="summary-icon bg-red-100">
+                            <i class="material-icons text-2xl text-red-600">trending_down</i>
+                        </div>
+                    </div>
+                    <h3 class="summary-title">Total Dépenses</h3>
+                    <p id="totalExpenses" class="summary-amount text-red-600">0€</p>
+                </div>
+                
+                <div class="summary-card savings">
+                    <div class="flex items-center mb-4">
+                        <div class="summary-icon bg-blue-100">
+                            <i class="material-icons text-2xl text-blue-600">savings</i>
+                        </div>
+                    </div>
+                    <h3 class="summary-title">Épargne Potentielle</h3>
+                    <p id="potentialSavings" class="summary-amount text-blue-600">0€</p>
+                </div>
+            </div>
+
+            <!-- Budget Analysis -->
+            <div id="analysis" class="analysis-card p-6 mb-6 content-section">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <i class="material-icons mr-3 text-blue-600 text-2xl">analytics</i>
+                        <h2 class="text-2xl font-medium">Analyse Budgétaire</h2>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <i class="material-icons mr-1">update</i>
+                        <span>Mise à jour en temps réel</span>
+                    </div>
+                </div>
+                
+                <div class="analysis-grid">
+                    <div class="analysis-panel">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-medium text-blue-700">Tendances</h3>
+                            <i class="material-icons text-blue-600">trending_up</i>
+                        </div>
+                        <div style="height: 300px;">
+                            <div id="budgetDistributionChart"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-panel">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-medium text-blue-700">Recommandations</h3>
+                            <i class="material-icons text-blue-600">lightbulb</i>
+                        </div>
+                        <div id="budgetRecommendations" class="space-y-2 overflow-y-auto" style="max-height: 300px;">
+                            <!-- Recommendations will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips and Recommendations -->
+            <div class="material-card bg-white p-6 mb-6 content-section">
+                <div class="flex items-center mb-4">
+                    <i class="material-icons mr-2 text-blue-600">lightbulb</i>
+                    <h2 class="text-xl font-medium">Astuces &amp; Recommandations</h2>
+                </div>
+                <div id="tipsContainer" class="grid md:grid-cols-2 grid-gap"></div>
+            </div>
+
+            <!-- Debt Repayment Simulator -->
+            <div class="material-card simulator-card p-6 mb-6 content-section">
+                <div class="flex items-center mb-6">
+                    <i class="material-icons mr-3 text-blue-600 text-2xl">calculate</i>
+                    <h2 class="text-2xl font-medium">Simulateur de Remboursement</h2>
+                </div>
+                <form id="debtSimulator" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="floating-label">
+                            <input type="number" id="debtAmount" class="material-input w-full" placeholder=" " required>
+                            <label for="debtAmount" class="text-gray-600">Montant de la dette (€)</label>
+                        </div>
+                        <div class="floating-label">
+                            <input type="number" step="0.1" id="interestRate" class="material-input w-full" placeholder=" " required>
+                            <label for="interestRate" class="text-gray-600">Taux d'intérêt annuel (%)</label>
+                        </div>
+                        <div class="floating-label">
+                            <input type="number" id="monthlyPayment" class="material-input w-full" placeholder=" " required>
+                            <label for="monthlyPayment" class="text-gray-600">Paiement mensuel (€)</label>
+                        </div>
+                        <div class="floating-label">
+                            <input type="number" step="1" id="extraPayment" class="material-input w-full" placeholder=" " value="0">
+                            <label for="extraPayment" class="text-gray-600">Paiement supplémentaire mensuel (€)</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="material-button w-full bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transform transition-all duration-300 hover:scale-[1.02] flex items-center justify-center">
+                        <i class="material-icons mr-2">timeline</i>
+                        Calculer le Plan de Remboursement
+                    </button>
+                </form>
+                
+                <div id="simulationResults" class="mt-8 hidden simulator-results p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="result-card p-5">
+                            <h3 class="font-medium text-blue-800 mb-3 flex items-center">
+                                <i class="material-icons mr-2">schedule</i>
+                                Plan Standard
+                            </h3>
+                            <div class="space-y-2">
+                                <p class="flex justify-between">
+                                    <span class="text-gray-600">Durée totale:</span>
+                                    <span id="baseTime" class="font-bold text-blue-900"></span>
+                                </p>
+                                <p class="flex justify-between">
+                                    <span class="text-gray-600">Intérêts totaux:</span>
+                                    <span id="baseInterest" class="font-bold text-blue-900"></span>
+                                </p>
+                                <p class="flex justify-between">
+                                    <span class="text-gray-600">Coût total:</span>
+                                    <span id="baseTotalCost" class="font-bold text-blue-900"></span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="result-card p-5">
+                            <h3 class="font-medium text-green-800 mb-3 flex items-center">
+                                <i class="material-icons mr-2">savings</i>
+                                Avec Paiements Supplémentaires
+                            </h3>
+                            <div class="space-y-2">
+                                <p class="flex justify-between">
+                                    <span class="text-gray-600">Durée totale:</span>
+                                    <span id="extraTime" class="font-bold text-green-900"></span>
+                                </p>
+                                <p class="flex justify-between">
+                                    <span class="text-gray-600">Intérêts totaux:</span>
+                                    <span id="extraInterest" class="font-bold text-green-900"></span>
+                                </p>
+                                <p class="flex justify-between">
+                                    <span class="text-gray-600">Coût total:</span>
+                                    <span id="extraTotalCost" class="font-bold text-green-900"></span>
+                                </p>
+                                <p class="flex justify-between mt-4 p-2 bg-green-50 rounded">
+                                    <span class="text-green-700">Économies:</span>
+                                    <span id="savings" class="font-bold text-green-700"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="simulator-chart">
+                        <div id="paymentScheduleChart"></div>
+                    </div>
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button onclick="downloadSimulationData('csv')" class="material-button bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center">
+                            <i class="material-icons mr-2">download</i>
+                            Exporter CSV
+                        </button>
+                        <button onclick="downloadSimulationData('pdf')" class="material-button bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center">
+                            <i class="material-icons mr-2">picture_as_pdf</i>
+                            Exporter PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projets d'Épargne -->
+            <div id="savings" class="material-card bg-white p-6 mb-6 content-section">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <i class="material-icons mr-2 text-blue-600">savings</i>
+                        <h2 class="text-xl font-medium">Projets d'Épargne</h2>
+                    </div>
+                    <button id="addProjectBtn" class="material-button bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Nouveau Projet
+                    </button>
+                </div>
+                <div id="savingsProjects" class="grid md:grid-cols-2 lg:grid-cols-3 grid-gap"></div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="grid md:grid-cols-2 grid-gap">
+
+                <!-- Ajout Transaction -->
+                <div class="material-card transaction-form-card p-6 content-section">
+                    <div class="flex items-center mb-6">
+                        <i class="material-icons mr-3 text-blue-600 text-2xl">add_circle</i>
+                        <h2 class="text-2xl font-medium">Nouvelle Transaction</h2>
+                    </div>
+                    
+                    <form id="transactionForm" class="space-y-6">
+                        <div class="transaction-type-selector">
+                            <div class="transaction-type-option active" data-value="credit">
+                                <i class="material-icons mb-1">trending_up</i>
+                                <div>Crédit</div>
+                            </div>
+                            <div class="transaction-type-option" data-value="debit">
+                                <i class="material-icons mb-1">trending_down</i>
+                                <div>Débit</div>
+                            </div>
+                        </div>
+                        <select id="transactionType" class="hidden">
+                            <option value="credit">Crédit</option>
+                            <option value="debit">Débit</option>
+                        </select>
+                        
+                        <div class="floating-label">
+                            <input type="text" id="description" required class="material-input w-full px-4" placeholder=" ">
+                            <label for="description" class="text-gray-600 px-4">Description</label>
+                        </div>
+                        
+                        <div class="floating-label">
+                            <input type="number" id="amount" required class="material-input w-full px-4" placeholder=" ">
+                            <label for="amount" class="text-gray-600 px-4">Montant (€)</label>
+                        </div>
+                        
+                        <div class="floating-label">
+                            <input type="datetime-local" id="transactionDate" required class="material-input w-full px-4" placeholder=" ">
+                            <label for="transactionDate" class="text-gray-600 px-4">Date</label>
+                        </div>
+                        
+                        <div class="relative">
+                            <select id="category" required class="material-select w-full px-4 py-3 appearance-none bg-transparent">
+                                <option value="revenus">Revenus</option>
+                                <option value="alimentation">Alimentation</option>
+                                <option value="transport">Transport</option>
+                                <option value="logement">Logement</option>
+                                <option value="loisirs">Loisirs</option>
+                                <option value="epargne">Épargne</option>
+                            </select>
+                            <i class="material-icons absolute right-4 top-3 text-gray-400">expand_more</i>
+                        </div>
+                        
+                        <button type="submit" class="material-button w-full bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transform transition-all duration-300 hover:scale-[1.02] flex items-center justify-center">
+                            <i class="material-icons mr-2">add_circle</i>
+                            Ajouter Transaction
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Graphique -->
+                <div class="material-card expense-chart-card p-6 content-section">
+                    <div class="flex items-center mb-6">
+                        <i class="material-icons mr-3 text-blue-600 text-2xl">pie_chart</i>
+                        <h2 class="text-2xl font-medium">Répartition des Dépenses</h2>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div id="expensesChart" style="height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Filtering and Export -->
+            <div class="flex items-center space-x-4 mb-4 export-button-group">
+                <select id="dateFilter" class="material-select">
+                    <option value="all">Tout</option>
+                    <option value="day">Aujourd'hui</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="month">Ce mois</option>
+                    <option value="year">Cette année</option>
+                </select>
+
+                <button id="exportData" class="material-button bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center mx-4" data-format="csv">
+                    <i class="material-icons mr-2">download</i>
+                    Exporter
+                </button>
+            </div>
+
+            <!-- Liste des Transactions -->
+            <div class="material-card mt-8 bg-white p-6 content-section">
+                <div class="flex items-center mb-4">
+                    <i class="material-icons mr-2 text-blue-600">history</i>
+                    <h2 class="text-xl font-medium">Historique des Transactions</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="transaction-table min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr class="transaction-header">
+                                <th class="transaction-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="transaction-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="transaction-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
+                                <th class="transaction-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                                <th class="transaction-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="transaction-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsList" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal for New Project -->
+<div id="projectModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium">Nouveau Projet d'Épargne</h3>
+            <form id="projectForm" class="mt-4 space-y-4">
+                <div class="floating-label">
+                    <input type="text" id="projectName" required="" class="material-input w-full" placeholder=" ">
+                    <label for="projectName" class="text-gray-600">Nom du projet</label>
+                </div>
+                <div class="floating-label">
+                    <input type="number" id="projectTarget" required="" class="material-input w-full" placeholder=" ">
+                    <label for="projectTarget" class="text-gray-600">Objectif (€)</label>
+                </div>
+                <div class="floating-label">
+                    <input type="date" id="projectDeadline" required="" class="material-input w-full" placeholder=" ">
+                    <label for="projectDeadline" class="text-gray-600">Date objectif</label>
+                </div>
+                <button type="submit" class="material-button w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700">
+                    Créer le projet
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Adding Money to Savings Projects -->
+<div id="addToProjectModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium">Ajouter au projet d'épargne</h3>
+            <form id="addToProjectForm" class="mt-4">
+                <input type="hidden" id="projectIndex">
+                <div class="floating-label">
+                    <input type="number" id="projectAmount" required="" class="material-input w-full" placeholder=" ">
+                    <label for="projectAmount" class="text-gray-600">Montant (€)</label>
+                </div>
+                <div class="mt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeAddToProjectModal()" class="material-button px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+                        Annuler
+                    </button>
+                    <button type="submit" class="material-button px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Confirmer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium">Profile Utilisateur</h3>
+                <button onclick="closeProfileModal()" class="text-gray-500">
+                    <i class="material-icons">close</i>
+                </button>
+            </div>
+            <form id="profileForm" class="mt-4 space-y-4">
+                <div class="floating-label">
+                    <input type="text" id="userName" class="material-input w-full" placeholder=" ">
+                    <label for="userName" class="text-gray-600">Nom complet</label>
+                </div>
+                <div class="floating-label">
+                    <input type="email" id="userEmail" class="material-input w-full" placeholder=" ">
+                    <label for="userEmail" class="text-gray-600">Email</label>
+                </div>
+                <div class="floating-label">
+                    <input type="number" id="monthlyIncome" class="material-input w-full" placeholder=" ">
+                    <label for="monthlyIncome" class="text-gray-600">Revenu mensuel (€)</label>
+                </div>
+                <div class="floating-label">
+                    <input type="number" id="savingsGoal" class="material-input w-full" placeholder=" ">
+                    <label for="savingsGoal" class="text-gray-600">Objectif d'épargne mensuel (€)</label>
+                </div>
+                <button type="submit" class="material-button w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700">
+                    Sauvegarder
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateSimulationChart(baseSchedule, extraSchedule) {
+    const months = baseSchedule.map((_, i) => i + 1);
+    const baseBalances = baseSchedule.map(data => data.balance);
+    const extraBalances = extraSchedule.map(data => data.balance);
+
+    const options = {
+        series: [{
+            name: 'Plan Standard',
+            data: baseBalances
+        }, {
+            name: 'Avec Paiements Supplémentaires',
+            data: extraBalances
+        }],
+        chart: {
+            height: 350,
+            type: 'line',
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800,
+            },
+            toolbar: {
+                show: true,
+                tools: {
+                    download: true,
+                    selection: false,
+                    zoom: true,
+                    zoomin: true,
+                    zoomout: true,
+                    pan: true,
+                }
+            }
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 3
+        },
+        xaxis: {
+            categories: months,
+            title: {
+                text: 'Mois'
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Solde restant (€)'
+            },
+            labels: {
+                formatter: function(value) {
+                    return value.toFixed(2) + ' €';
+                }
+            }
+        },
+        colors: ['#3B82F6', '#10B981'],
+        markers: {
+            size: 4,
+            hover: {
+                size: 6
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: function(value) {
+                    return value.toFixed(2) + ' €';
+                }
+            }
+        },
+        grid: {
+            borderColor: '#f1f5f9',
+            xaxis: {
+                lines: {
+                    show: true
+                }
+            }
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'center'
+        },
+        title: {
+            text: 'Comparaison des Plans de Remboursement',
+            align: 'center',
+            style: {
+                fontSize: '16px',
+                fontWeight: 600
+            }
+        }
+    };
+
+    if (window.paymentScheduleChart) {
+        window.paymentScheduleChart.destroy();
+    }
+
+    window.paymentScheduleChart = new ApexCharts(document.querySelector("#paymentScheduleChart"), options);
+    window.paymentScheduleChart.render();
+}
+
+let expensesChart = null;
+let budgetDistributionChart = null;
+window.paymentScheduleChart = null;
+
+function updateBudgetRecommendations() {
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    const recommendationsContainer = $('#budgetRecommendations');
+    recommendationsContainer.empty();
+
+    const monthlyTotals = {
+        income: 0,
+        expenses: 0,
+        categories: {}
+    };
+
+    transactions.forEach(t => {
+        if (t.type === 'credit') {
+            monthlyTotals.income += t.amount;
+        } else {
+            monthlyTotals.expenses += Math.abs(t.amount);
+            monthlyTotals.categories[t.category] = (monthlyTotals.categories[t.category] || 0) + Math.abs(t.amount);
+        }
+    });
+
+    const recommendations = [];
+    const essentialCategories = ['logement', 'alimentation', 'transport'];
+    const essentialExpenses = essentialCategories.reduce((sum, cat) => 
+        sum + (monthlyTotals.categories[cat] || 0), 0);
+    
+    const essentialPercentage = (essentialExpenses / monthlyTotals.income) * 100;
+    
+    if (essentialPercentage > 50) {
+        recommendations.push({
+            type: 'warning',
+            text: 'Les dépenses essentielles dépassent 50% de vos revenus. Essayez de réduire ces coûts.'
+        });
+    }
+
+    const savingsRate = ((monthlyTotals.income - monthlyTotals.expenses) / monthlyTotals.income) * 100;
+    if (savingsRate < 20) {
+        recommendations.push({
+            type: 'info',
+            text: 'Votre taux d\'épargne est inférieur à 20%. Essayez d\'augmenter vos économies.'
+        });
+    }
+
+    Object.entries(monthlyTotals.categories).forEach(([category, amount]) => {
+        const percentage = (amount / monthlyTotals.income) * 100;
+        if (percentage > 30 && !essentialCategories.includes(category)) {
+            recommendations.push({
+                type: 'warning',
+                text: `Les dépenses en ${category} représentent ${percentage.toFixed(1)}% de vos revenus. Envisagez de réduire.`
+            });
+        }
+    });
+
+    if (recommendations.length === 0) {
+        recommendations.push({
+            type: 'success',
+            text: 'Votre budget est bien équilibré! Continuez ainsi!'
+        });
+    }
+
+    recommendations.forEach(rec => {
+        const bgColor = {
+            warning: 'bg-yellow-50 border-l-4 border-yellow-400',
+            info: 'bg-blue-50 border-l-4 border-blue-400',
+            success: 'bg-green-50 border-l-4 border-green-400'
+        }[rec.type];
+
+        const iconColor = {
+            warning: 'bg-yellow-100 text-yellow-600',
+            info: 'bg-blue-100 text-blue-600',
+            success: 'bg-green-100 text-green-600'
+        }[rec.type];
+
+        const recommendation = $(`
+            <div class="recommendation-item ${bgColor}">
+                <div class="recommendation-icon ${iconColor}">
+                    <i class="material-icons">${
+                        rec.type === 'warning' ? 'warning' :
+                        rec.type === 'info' ? 'info' :
+                        'check_circle'
+                    }</i>
+                </div>
+                <div>
+                    <p class="text-gray-800">${rec.text}</p>
+                </div>
+            </div>
+        `);
+        
+        recommendationsContainer.append(recommendation);
+    });
+}
+
+function calculateDebtRepayment(principal, annualRate, monthlyPayment, extraPayment = 0) {
+    const monthlyRate = annualRate / 12 / 100;
+    let balance = principal;
+    let months = 0;
+    let totalInterest = 0;
+    const schedule = [];
+    
+    while (balance > 0 && months < 360) {
+        const interestPayment = balance * monthlyRate;
+        const totalMonthlyPayment = Math.min(monthlyPayment + extraPayment, balance + interestPayment);
+        const principalPayment = totalMonthlyPayment - interestPayment;
+        
+        totalInterest += interestPayment;
+        balance -= principalPayment;
+        months++;
+        
+        schedule.push({
+            month: months,
+            balance: balance,
+            interestPayment: interestPayment,
+            principalPayment: principalPayment
+        });
+    }
+    
+    return {
+        months: months,
+        totalInterest: totalInterest,
+        totalCost: principal + totalInterest,
+        schedule: schedule
+    };
+}
+
+function downloadSimulationData(format) {
+    const principal = parseFloat($('#debtAmount').val());
+    const annualRate = parseFloat($('#interestRate').val());
+    const monthlyPayment = parseFloat($('#monthlyPayment').val());
+    const extraPayment = parseFloat($('#extraPayment').val()) || 0;
+
+    const baseResult = calculateDebtRepayment(principal, annualRate, monthlyPayment, 0);
+    const extraResult = calculateDebtRepayment(principal, annualRate, monthlyPayment, extraPayment);
+
+    if (format === 'csv') {
+        const csvRows = ['Month,Standard Balance,Standard Interest,Extra Payment Balance,Extra Payment Interest'];
+        for (let i = 0; i < Math.max(baseResult.schedule.length, extraResult.schedule.length); i++) {
+            const baseData = baseResult.schedule[i] || { balance: 0, interestPayment: 0 };
+            const extraData = extraResult.schedule[i] || { balance: 0, interestPayment: 0 };
+            csvRows.push(`${i + 1},${baseData.balance.toFixed(2)},${baseData.interestPayment.toFixed(2)},${extraData.balance.toFixed(2)},${extraData.interestPayment.toFixed(2)}`);
+        }
+        
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'simulation_data.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } else if (format === 'pdf') {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(16);
+        doc.text('Simulation de Remboursement de Dette', 20, 20);
+        
+        doc.setFontSize(12);
+        doc.text(`Principal: ${principal.toFixed(2)}€`, 20, 40);
+        doc.text(`Taux d'intérêt: ${annualRate}%`, 20, 50);
+        doc.text(`Paiement mensuel: ${monthlyPayment.toFixed(2)}€`, 20, 60);
+        doc.text(`Paiement supplémentaire: ${extraPayment.toFixed(2)}€`, 20, 70);
+
+        const comparisonData = [
+            ['', 'Plan Standard', 'Avec Paiements Supp.'],
+            ['Durée (mois)', baseResult.months.toString(), extraResult.months.toString()],
+            ['Intérêts totaux', baseResult.totalInterest.toFixed(2) + '€', extraResult.totalInterest.toFixed(2) + '€'],
+            ['Coût total', baseResult.totalCost.toFixed(2) + '€', extraResult.totalCost.toFixed(2) + '€']
+        ];
+
+        doc.autoTable({
+            startY: 90,
+            head: [['Mois', 'Solde Standard', 'Intérêts Standard', 'Solde Extra', 'Intérêts Extra']],
+            body: baseResult.schedule.map((_, i) => {
+                const baseData = baseResult.schedule[i] || { balance: 0, interestPayment: 0 };
+                const extraData = extraResult.schedule[i] || { balance: 0, interestPayment: 0 };
+                return [
+                    i + 1,
+                    baseData.balance.toFixed(2) + '€',
+                    baseData.interestPayment.toFixed(2) + '€',
+                    extraData.balance.toFixed(2) + '€',
+                    extraData.interestPayment.toFixed(2) + '€'
+                ];
+            })
+        });
+
+        doc.save('simulation_remboursement.pdf');
+    }
+}
+
+function updateAll() {
+    if (!validateData()) {
+        return;
+    }
+    try {
+        updateSummary();
+        updateTransactionsList();
+        updateChart();
+        updateBudgetAnalysis();
+        updateSavingsProjects();
+        updateBudgetRecommendations();
+        updateProfileInfo();
+    } catch(e) {
+        handleError(e);
+    }
+}
+
+function handleError(error) {
+    console.error(error);
+    alert('Une erreur est survenue: ' + error.message);
+}
+
+function showNotification(message, type = 'info') {
+    const notification = $(`
+        <div class="notification rounded-lg p-4 text-white notification-${type} flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="material-icons mr-2">${getNotificationIcon(type)}</i>
+                <span class="mr-2">${message}</span>
+            </div>
+            <button class="focus:outline-none hover:text-gray-200 transition-colors" 
+                    onclick="$(this).parent().remove()">
+                <i class="material-icons text-sm">close</i>
+            </button>
+        </div>
+    `);
+    
+    $('#notificationContainer').append(notification);
+    
+    // Remove the notification after animation completes
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'success': return 'check_circle';
+        case 'warning': return 'warning';
+        case 'error': return 'error';
+        default: return 'info';
+    }
+}
+
+function validateData() {
+    try {
+        const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        const projects = JSON.parse(localStorage.getItem('savingsProjects') || '[]');
+        return true;
+    } catch(e) {
+        handleError(e);
+        return false;
+    }
+}
+
+function addToProject(index) {
+    $('#projectIndex').val(index);
+    $('#addToProjectModal').removeClass('hidden');
+    showNotification('Ajout au projet d\'épargne', 'info');
+}
+
+function closeAddToProjectModal() {
+    $('#addToProjectModal').addClass('hidden');
+    $('#addToProjectForm')[0].reset();
+}
+
+function openProfileModal() {
+    $('#profileModal').removeClass('hidden');
+    const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    $('#userName').val(profile.name || '');
+    $('#userEmail').val(profile.email || '');
+    $('#monthlyIncome').val(profile.monthlyIncome || '');
+    $('#savingsGoal').val(profile.savingsGoal || '');
+}
+
+function closeProfileModal() {
+    $('#profileModal').addClass('hidden');
+}
+
+function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    const tableData = transactions.map(t => [
+        new Date(t.date).toLocaleDateString(),
+        t.description,
+        t.category,
+        `${Math.abs(t.amount).toFixed(2)}€`,
+        t.type
+    ]);
+
+    doc.autoTable({
+        head: [['Date', 'Description', 'Catégorie', 'Montant', 'Type']],
+        body: tableData,
+    });
+
+    doc.save('transactions.pdf');
+}
+
+function backupData() {
+    const data = {
+        transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
+        savingsProjects: JSON.parse(localStorage.getItem('savingsProjects') || [])
+    };
+    
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'budgetmaster_backup.json';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    showNotification('Sauvegarde effectuée avec succès', 'success');
+}
+
+function restoreData(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            localStorage.setItem('transactions', JSON.stringify(data.transactions));
+            localStorage.setItem('savingsProjects', JSON.stringify(data.savingsProjects));
+            updateAll();
+            showNotification('Données restaurées avec succès', 'success');
+        } catch(e) {
+            showNotification('Erreur lors de la restauration des données', 'error');
+        }
+    };
+    reader.readAsText(file);
+}
+
+function validateTransaction(transaction) {
+    const errors = [];
+    if (!transaction.description.trim()) {
+        errors.push('La description est requise');
+    }
+    if (isNaN(transaction.amount) || transaction.amount <= 0) {
+        errors.push('Le montant doit être un nombre positif');
+    }
+    if (!transaction.category) {
+        errors.push('La catégorie est requise');
+    }
+    if (!transaction.date) {
+        errors.push('La date est requise');
+    }
+    return errors;
+}
+
+function showLoading() {
+    const loader = $('<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">')
+        .append('<div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent">');
+    $('body').append(loader);
+}
+
+function hideLoading() {
+    $('.fixed').remove();
+}
+
+function updateChart() {
+    const expensesByCategory = {};
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    
+    transactions.forEach(transaction => {
+        if (transaction.type === 'debit') {
+            expensesByCategory[transaction.category] = (expensesByCategory[transaction.category] || 0) - transaction.amount;
+        }
+    });
+
+    if (Object.keys(expensesByCategory).length === 0) {
+        expensesByCategory['Aucune dépense'] = 0;
+    }
+
+    const options = {
+        series: Object.values(expensesByCategory),
+        labels: Object.keys(expensesByCategory),
+        chart: {
+            type: 'pie',
+            height: 300
+        },
+        noData: {
+            text: 'Aucune donnée disponible'
+        }
+    };
+
+    if (expensesChart) {
+        expensesChart.destroy();
+    }
+    expensesChart = new ApexCharts(document.querySelector("#expensesChart"), options);
+    expensesChart.render();
+}
+
+function updateBudgetAnalysis() {
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    
+    if (transactions.length === 0) {
+        if (budgetDistributionChart) {
+            budgetDistributionChart.destroy();
+        }
+        budgetDistributionChart = new ApexCharts(document.querySelector("#budgetDistributionChart"), {
+            series: [{
+                name: 'Données',
+                data: [0]
+            }],
+            chart: {
+                height: 300,
+                type: 'line'
+            },
+            noData: {
+                text: 'Aucune donnée disponible'
+            }
+        });
+        budgetDistributionChart.render();
+        return;
+    }
+
+    const dates = [...new Set(transactions.map(t => t.date.split('T')[0]))].sort();
+    const creditData = [];
+    const debitData = [];
+    const balanceData = [];
+    
+    let balance = 0;
+    dates.forEach(date => {
+        const dayTransactions = transactions.filter(t => t.date.startsWith(date));
+        const dayCredit = dayTransactions.reduce((sum, t) => sum + (t.type === 'credit' ? t.amount : 0), 0);
+        const dayDebit = dayTransactions.reduce((sum, t) => sum + (t.type === 'debit' ? t.amount : 0), 0);
+        balance += dayCredit + dayDebit;
+        
+        creditData.push(dayCredit);
+        debitData.push(dayDebit);
+        balanceData.push(balance);
+    });
+
+    const options = {
+        series: [{
+            name: 'Crédit',
+            data: creditData
+        }, {
+            name: 'Débit',
+            data: debitData
+        }, {
+            name: 'Solde',
+            data: balanceData
+        }],
+        chart: {
+            height: 300,
+            type: 'line'
+        },
+        xaxis: {
+            categories: dates
+        }
+    };
+
+    if (budgetDistributionChart) {
+        budgetDistributionChart.destroy();
+    }
+    budgetDistributionChart = new ApexCharts(document.querySelector("#budgetDistributionChart"), options);
+    budgetDistributionChart.render();
+}
+
+function updateSummary() {
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    
+    const totalIncome = transactions.reduce((sum, t) => sum + (t.type === 'credit' ? t.amount : 0), 0);
+    const totalExpenses = transactions.reduce((sum, t) => sum + (t.type === 'debit' ? Math.abs(t.amount) : 0), 0);
+    const potentialSavings = totalIncome - totalExpenses;
+
+    $('#totalIncome').text(totalIncome.toFixed(2) + '€');
+    $('#totalExpenses').text(totalExpenses.toFixed(2) + '€');
+    $('#potentialSavings').text(potentialSavings.toFixed(2) + '€');
+}
+
+function updateTransactionsList() {
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    const filter = $('#dateFilter').val();
+    const now = new Date();
+    
+    let filteredTransactions = transactions;
+    
+    if (filter !== 'all') {
+        filteredTransactions = transactions.filter(t => {
+            const tDate = new Date(t.date);
+            const startOfDay = new Date(now);
+            startOfDay.setHours(0, 0, 0, 0);
+            
+            switch(filter) {
+                case 'day':
+                    return tDate >= startOfDay;
+                case 'week':
+                    const weekAgo = new Date(startOfDay);
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return tDate >= weekAgo;
+                case 'month':
+                    const monthAgo = new Date(startOfDay);
+                    monthAgo.setMonth(monthAgo.getMonth() - 1);
+                    return tDate >= monthAgo;
+                case 'year':
+                    const yearAgo = new Date(startOfDay);
+                    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+                    return tDate >= yearAgo;
+                default:
+                    return true;
+            }
+        });
+    }
+    
+    const tbody = $('#transactionsList');
+    tbody.empty();
+    
+    if (filteredTransactions.length === 0) {
+        tbody.append(`
+            <tr>
+                <td colspan="6" class="text-center py-8">
+                    <i class="material-icons text-gray-400 text-5xl mb-4">receipt_long</i>
+                    <p class="text-gray-500">Aucune transaction trouvée</p>
+                </td>
+            </tr>
+        `);
+        return;
+    }
+    
+    filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+        const date = new Date(t.date);
+        const formattedDate = date.toLocaleString('fr-FR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const row = $(`
+            <tr class="transaction-row">
+                <td class="transaction-cell">
+                    <div class="flex items-center">
+                        <i class="material-icons mr-2 text-gray-400">event</i>
+                        <span>${formattedDate}</span>
+                    </div>
+                </td>
+                <td class="transaction-cell">
+                    <div class="flex items-center">
+                        <i class="material-icons mr-2 text-gray-400">description</i>
+                        <span>${t.description}</span>
+                    </div>
+                </td>
+                <td class="transaction-cell">
+                    <div class="flex items-center">
+                        <i class="material-icons mr-2 text-gray-400">category</i>
+                        <span>${t.category}</span>
+                    </div>
+                </td>
+                <td class="transaction-cell">
+                    <span class="transaction-amount ${t.type === 'credit' ? 'text-green-600' : 'text-red-600'}">
+                        ${Math.abs(t.amount).toFixed(2)}€
+                    </span>
+                </td>
+                <td class="transaction-cell">
+                    <span class="transaction-type-badge ${t.type === 'credit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                        ${t.type}
+                    </span>
+                </td>
+                <td class="transaction-cell">
+                    <div class="transaction-actions flex justify-end">
+                        <button class="delete-button" onclick="deleteTransaction(${transactions.indexOf(t)})">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `);
+        tbody.append(row);
+    });
+}
+
+function updateSavingsProjects() {
+    const projects = JSON.parse(localStorage.getItem('savingsProjects') || '[]');
+    const container = $('#savingsProjects');
+    container.empty();
+    
+    projects.forEach((project, index) => {
+        const progress = (project.current / project.target) * 100;
+        const daysLeft = Math.ceil((new Date(project.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+        const monthlyNeeded = (project.target - project.current) / (daysLeft / 30);
+        
+        const card = $(`
+            <div class="savings-project-card bg-white p-6 shadow-lg mb-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">${project.name}</h3>
+                    <span class="px-3 py-1 rounded-full text-sm ${progress >= 100 ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+                        ${progress >= 100 ? 'Objectif atteint!' : `${daysLeft} jours restants`}
+                    </span>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">Épargné</span>
+                        <span class="font-medium">${project.current.toFixed(2)}€</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="progress-bar h-3 rounded-full ${
+                            progress >= 100 ? 'bg-green-500' : 'bg-blue-500'
+                        }" style="width: ${Math.min(progress, 100)}%"></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <div class="text-sm text-gray-500">Objectif</div>
+                        <div class="font-semibold text-lg">${project.target.toFixed(2)}€</div>
+                    </div>
+                </div>
+                
+                <div class="bg-blue-50 p-3 rounded-lg mb-4">
+                    <div class="text-sm text-blue-600">Épargne mensuelle recommandée</div>
+                    <div class="font-semibold text-lg text-blue-700">${monthlyNeeded.toFixed(2)}€</div>
+                </div>
+                
+                <button class="material-button w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 
+                    flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02]"
+                    onclick="addToProject(${index})">
+                    <i class="material-icons mr-2">add_circle</i>
+                    Ajouter des fonds
+                </button>
+            </div>
+        `);
+        
+        container.append(card);
+    });
+
+    if (projects.length === 0) {
+        container.append(`
+            <div class="text-center py-8">
+                <i class="material-icons text-gray-400 text-5xl mb-4">savings</i>
+                <p class="text-gray-500">Aucun projet d'épargne pour le moment</p>
+                <p class="text-gray-400 text-sm">Cliquez sur "Nouveau Projet" pour commencer</p>
+            </div>
+        `);
+    }
+}
+
+function deleteTransaction(index) {
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    transactions.splice(index, 1);
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+    updateAll();
+}
+
+function updateProfileInfo() {
+    const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    if (profile.name) {
+        $('#profileBtn').html(`
+            <i class="material-icons mr-2">account_circle</i>
+            ${profile.name.split(' ')[0]}
+        `);
+    }
+}
+
+$('#exportData').click(function() {
+    const format = $(this).data('format');
+    if (format === 'pdf') {
+        exportPDF();
+    } else if (format === 'csv') {
+        const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        const csv = transactions.map(t => 
+            `${new Date(t.date).toLocaleDateString()},${t.description},${t.category},${t.amount},${t.type}`
+        ).join('\n');
+        
+        const blob = new Blob(['Date,Description,Category,Amount,Type\n' + csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'transactions.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+});
+
+$(document).ready(function() {
+    if (!localStorage.getItem('transactions')) {
+        localStorage.setItem('transactions', '[]');
+    }
+    if (!localStorage.getItem('savingsProjects')) {
+        localStorage.setItem('savingsProjects', '[]');
+    }
+    
+    let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    let savingsProjects = JSON.parse(localStorage.getItem('savingsProjects') || '[]');
+
+    // Initialize form handlers
+    $('#transactionForm').submit(function(e) {
+        e.preventDefault();
+        const transactionDate = $('#transactionDate').val() ? 
+            new Date($('#transactionDate').val()).toISOString() : 
+            new Date().toISOString();
+            
+        const transaction = {
+            date: transactionDate,
+            description: $('#description').val(),
+            amount: parseFloat($('#amount').val()) * ($('#transactionType').val() === 'debit' ? -1 : 1),
+            category: $('#category').val(),
+            type: $('#transactionType').val()
+        };
+
+        const errors = validateTransaction(transaction);
+        if (errors.length > 0) {
+            alert(errors.join('\n'));
+            return;
+        }
+        
+        transactions.push(transaction);
+        transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+        
+        this.reset();
+        updateAll();
+        showNotification('Transaction ajoutée avec succès', 'success');
+    });
+
+    $('#projectForm').submit(function(e) {
+        e.preventDefault();
+        const project = {
+            name: $('#projectName').val(),
+            target: parseFloat($('#projectTarget').val()),
+            current: 0,
+            deadline: $('#projectDeadline').val()
+        };
+        
+        savingsProjects.push(project);
+        localStorage.setItem('savingsProjects', JSON.stringify(savingsProjects));
+        $('#projectModal').addClass('hidden');
+        this.reset();
+        updateSavingsProjects();
+        showNotification('Nouveau projet créé', 'success');
+    });
+
+    $('#addProjectBtn').click(function() {
+        $('#projectModal').removeClass('hidden');
+    });
+
+    $('#addToProjectForm').submit(function(e) {
+        e.preventDefault();
+        const index = parseInt($('#projectIndex').val());
+        const amount = parseFloat($('#projectAmount').val());
+        
+        const projects = JSON.parse(localStorage.getItem('savingsProjects') || '[]');
+        if (projects[index]) {
+            projects[index].current += amount;
+            localStorage.setItem('savingsProjects', JSON.stringify(projects));
+        }
+        
+        closeAddToProjectModal();
+        updateSavingsProjects();
+    });
+
+    $('#projectModal').click(function(e) {
+        if (e.target === this) {
+            $(this).addClass('hidden');
+        }
+    });
+
+    $('#addToProjectModal').click(function(e) {
+        if (e.target === this) {
+            closeAddToProjectModal();
+        }
+    });
+
+    $('#dateFilter').change(function() {
+        updateAll();
+    });
+    
+    $('#profileBtn').click(function() {
+        openProfileModal();
+    });
+
+    $('#profileForm').submit(function(e) {
+        e.preventDefault();
+        const profile = {
+            name: $('#userName').val(),
+            email: $('#userEmail').val(),
+            monthlyIncome: parseFloat($('#monthlyIncome').val()),
+            savingsGoal: parseFloat($('#savingsGoal').val())
+        };
+        
+        localStorage.setItem('userProfile', JSON.stringify(profile));
+        closeProfileModal();
+        updateProfileInfo();
+        showNotification('Profil mis à jour', 'success');
+    });
+
+    $('#transactionForm input[type="number"]').on('input', function() {
+        if ($(this).val() < 0) {
+            $(this).val(0);
+        }
+    });
+
+    $('.transaction-type-option').click(function() {
+        $('.transaction-type-option').removeClass('active');
+        $(this).addClass('active');
+        $('#transactionType').val($(this).data('value'));
+    });
+
+    const tipsContainer = $('#tipsContainer');
+    tipsContainer.empty();
+
+    const tips = [
+        {
+            icon: 'account_balance',
+            title: 'Règle 50/30/20',
+            content: 'Répartissez votre budget : 50% pour les besoins essentiels, 30% pour les envies, 20% pour l\'épargne.'
+        },
+        {
+            icon: 'savings',
+            title: 'Économies Quotidiennes',
+            content: 'Préparez vos repas, utilisez les transports en commun, comparez les prix avant d\'acheter.'
+        },
+        {
+            icon: 'trending_up',
+            title: 'Objectifs d\'Épargne',
+            content: 'Fixez-vous des objectifs mensuels d\'épargne et mettez en place des virements automatiques.'
+        },
+        {
+            icon: 'pie_chart',
+            title: 'Réduction des Dépenses',
+            content: 'Identifiez et éliminez les abonnements inutiles, optez pour des alternatives moins coûteuses.'
+        }
+    ];
+
+    tips.forEach(tip => {
+        const tipCard = $(`
+            <div class="tip-card p-6">
+                <div class="tip-icon">
+                    <i class="material-icons">${tip.icon}</i>
+                </div>
+                <h3 class="tip-title">${tip.title}</h3>
+                <p class="tip-content">${tip.content}</p>
+            </div>
+        `);
+        tipsContainer.append(tipCard);
+    });
+
+    updateProfileInfo();
+    updateAll();
+
+    $('#debtSimulator').submit(function(e) {
+        e.preventDefault();
+        
+        const principal = parseFloat($('#debtAmount').val());
+        const annualRate = parseFloat($('#interestRate').val());
+        const monthlyPayment = parseFloat($('#monthlyPayment').val());
+        const extraPayment = parseFloat($('#extraPayment').val()) || 0;
+
+        if (isNaN(principal) || isNaN(annualRate) || isNaN(monthlyPayment)) {
+            showNotification('Veuillez remplir tous les champs requis', 'error');
+            return;
+        }
+
+        if (monthlyPayment <= (principal * (annualRate/1200))) {
+            showNotification('Le paiement mensuel est trop faible pour rembourser la dette', 'warning');
+            return;
+        }
+
+        const baseResult = calculateDebtRepayment(principal, annualRate, monthlyPayment, 0);
+        const extraResult = calculateDebtRepayment(principal, annualRate, monthlyPayment, extraPayment);
+
+        $('#baseTime').text(`${baseResult.months} mois`);
+        $('#baseInterest').text(`${baseResult.totalInterest.toFixed(2)}€`);
+        $('#baseTotalCost').text(`${baseResult.totalCost.toFixed(2)}€`);
+
+        $('#extraTime').text(`${extraResult.months} mois`);
+        $('#extraInterest').text(`${extraResult.totalInterest.toFixed(2)}€`);
+        $('#extraTotalCost').text(`${extraResult.totalCost.toFixed(2)}€`);
+
+        const savings = baseResult.totalCost - extraResult.totalCost;
+        $('#savings').text(`${savings.toFixed(2)}€`);
+
+        updateSimulationChart(baseResult.schedule, extraResult.schedule);
+
+        $('#simulationResults').removeClass('hidden');
+        
+        showNotification('Simulation effectuée avec succès', 'success');
+    });
+});
+</script>
+
+</body></html>
